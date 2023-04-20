@@ -1,3 +1,6 @@
+.thumb
+.syntax unified
+
 .text
 .global mandelrow_impl
 
@@ -18,7 +21,7 @@
 	// domain in real is -2 to 0.5, imag -1.25 to +1.25
 
 mandelrow_impl:
-	push {R4-R10, lr}
+	stmdb sp!, {R4-R10, lr}
 
 	mov R10, R0
 	mov R2, R1
@@ -77,4 +80,4 @@ end:
 
 	// no useful return value, so fall off function
 	mov R0, R2
-	pop {R4-R10, pc}
+	ldmia.w sp!, {R4-R10, pc}
