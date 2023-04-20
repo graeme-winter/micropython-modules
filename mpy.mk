@@ -47,6 +47,7 @@ ifeq ($(ARCH),x86)
 CROSS =
 CFLAGS += -m32 -fno-stack-protector
 MICROPY_FLOAT_IMPL ?= double
+AFLAGS =
 
 else ifeq ($(ARCH),x64)
 
@@ -54,6 +55,7 @@ else ifeq ($(ARCH),x64)
 CROSS =
 CFLAGS += -fno-stack-protector
 MICROPY_FLOAT_IMPL ?= double
+AFLAGS =
 
 else ifeq ($(ARCH),armv6m)
 
@@ -61,6 +63,7 @@ else ifeq ($(ARCH),armv6m)
 CROSS = arm-none-eabi-
 CFLAGS += -mthumb -mcpu=cortex-m0
 MICROPY_FLOAT_IMPL ?= none
+AFLAGS = -mthumb -mcpu=cortex-m0
 
 else ifeq ($(ARCH),armv7m)
 
@@ -68,6 +71,7 @@ else ifeq ($(ARCH),armv7m)
 CROSS = arm-none-eabi-
 CFLAGS += -mthumb -mcpu=cortex-m3
 MICROPY_FLOAT_IMPL ?= none
+AFLAGS = -mthumb -mcpu=cortex-m3
 
 else ifeq ($(ARCH),armv7emsp)
 
@@ -76,6 +80,7 @@ CROSS = arm-none-eabi-
 CFLAGS += -mthumb -mcpu=cortex-m4
 CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 MICROPY_FLOAT_IMPL ?= float
+AFLAGS = -mthumb -mcpu=cortex-m4
 
 else ifeq ($(ARCH),armv7emdp)
 
@@ -84,6 +89,7 @@ CROSS = arm-none-eabi-
 CFLAGS += -mthumb -mcpu=cortex-m7
 CFLAGS += -mfpu=fpv5-d16 -mfloat-abi=hard
 MICROPY_FLOAT_IMPL ?= double
+AFLAGS = -mthumb -mcpu=cortex-m7
 
 else ifeq ($(ARCH),xtensa)
 
@@ -91,6 +97,7 @@ else ifeq ($(ARCH),xtensa)
 CROSS = xtensa-lx106-elf-
 CFLAGS += -mforce-l32
 MICROPY_FLOAT_IMPL ?= none
+AFLAGS =
 
 else ifeq ($(ARCH),xtensawin)
 
@@ -98,6 +105,7 @@ else ifeq ($(ARCH),xtensawin)
 CROSS = xtensa-esp32-elf-
 CFLAGS +=
 MICROPY_FLOAT_IMPL ?= float
+AFLAGS =
 
 else
 $(error architecture '$(ARCH)' not supported)
@@ -137,7 +145,7 @@ $(BUILD)/%.o: %.c $(CONFIG_H) Makefile
 # Build .o from .S source files
 $(BUILD)/%.o: %.S $(CONFIG_H) Makefile
 	$(ECHO) "AS $<"
-	$(Q)$(CROSS)as -mthumb -c -o $@ $<
+	$(Q)$(CROSS)as ${AFLAGS} -c -o $@ $<
 
 # Build .mpy from .py source files
 $(BUILD)/%.mpy: %.py
