@@ -78,6 +78,6 @@ end:
 	cmp R1, #0x800000
 	blt real
 
-	// no useful return value, so fall off function
+	// return Ci value to confirm
 	mov R0, R2
 	ldmia.w sp!, {R4-R10, pc}

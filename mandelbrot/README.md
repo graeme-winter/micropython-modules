@@ -6,4 +6,4 @@ Ported from general ARM7 assembly, as an exercise in understanding. Key points a
 - using the right assembler - `arm-none-eabi-as` in this case
 - slightly custom `Makefile` to facilitate this
 
-Builds fine, allows assembly code to be called from µPython.
+Builds fine, allows assembly code to be called from µPython, [discussion here](https://graeme-winter.github.io/2023/04/2023-04-20.html).
