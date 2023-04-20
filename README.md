@@ -4,4 +4,4 @@ Writing native code in C, assembly to extend µPython in fun ways, to push what 
 
 Examples:
 
-- [Mandelbrot set calculation](./mandelbrot/README.md)
+- [Mandelbrot set calculation](./mandelbrot)
