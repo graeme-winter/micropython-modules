@@ -12,6 +12,11 @@ STATIC mp_obj_t drive_irq_init(void) {
   if (buffer == NULL) {
     buffer = m_malloc(2 * 1024);
     irq_vector_copy = (mp_uint_t *)(((mp_uint_t)buffer & (~1023)) + 1024);
+
+    // FIXME copy vector from current source location
+    // FIXME update VTOR
+    // FIXME register additional handler
+    // FIXME enable IRQ
   }
 
   mp_int_t result = (mp_int_t)irq_vector_copy;
@@ -19,8 +24,10 @@ STATIC mp_obj_t drive_irq_init(void) {
 }
 
 STATIC mp_obj_t drive_irq_deinit(void) {
-  // allocate buffer of 2 x size to give space to align with 1024 kB boundary
   if (buffer) {
+    // FIXME disable IRQ
+    // FIXME revert VTOR
+
     m_free(buffer);
     buffer = NULL;
     irq_vector_copy = NULL;
