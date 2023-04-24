@@ -1,20 +1,30 @@
 #include "py/dynruntime.h"
 
-STATIC mp_obj_t drive_irq(mp_obj_t obj0, mp_obj_t obj1) {
-  mp_int_t arg0 = mp_obj_get_int(obj0);
-  mp_int_t arg1 = mp_obj_get_int(obj1);
-  mp_int_t result = arg0 + arg1;
+// memory structure - interrupt vector is length > 128 -> 256 word alignment
+// needed so just allocate 2 kB of memory, seek to point where this is aligned
+// correctly
+
+mp_uint_t * buffer = NULL;
+mp_uint_t * irq_vector_copy = NULL;
+
+STATIC mp_obj_t drive_irq_init() {
+  // allocate buffer of 2 x size to give space to align with 1024 kB boundary
+  if (buffer == NULL) {
+    buffer = m_malloc (2 * 1024);
+    irq_vector_copy = (mp_uint_t *) (((mp_uint_t) buffer & (~1023)) + 1024);
+  }
+
+  mp_int_t result = (mp_int_t) irq_vector_copy;
   return mp_obj_new_int(result);
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(drive_irq_obj, drive_irq);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(drive_irq_init_obj, drive_irq_init);
 
 mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw,
                   mp_obj_t *args) {
   MP_DYNRUNTIME_INIT_ENTRY
 
-  mp_store_global(MP_QSTR_drive_irq, MP_OBJ_FROM_PTR(&drive_irq_obj));
+  mp_store_global(MP_QSTR_init, MP_OBJ_FROM_PTR(&drive_irq_init_obj));
 
   MP_DYNRUNTIME_INIT_EXIT
 }
-
