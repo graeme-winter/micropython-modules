@@ -4,22 +4,36 @@
 // needed so just allocate 2 kB of memory, seek to point where this is aligned
 // correctly
 
-mp_uint_t *buffer = NULL;
-mp_uint_t *irq_vector_copy = NULL;
+unsigned int *buffer = NULL;
+unsigned int *irq_vector_copy = NULL;
+unsigned int *VTOR_INIT = 0;
+
+void irq_action(void) {
+  // toggle PA22
+  unsigned int *PA_OUTTGL = (unsigned int *) (0x41008000 | 0x1c);
+  unsigned int LED_BIT = 0x1 << 22;
+  *PA_OUTTGL = LED_BIT;
+}
 
 STATIC mp_obj_t drive_irq_init(void) {
   // allocate buffer of 2 x size to give space to align with 1024 kB boundary
   if (buffer == NULL) {
     buffer = m_malloc(2 * 1024);
-    irq_vector_copy = (mp_uint_t *)(((mp_uint_t)buffer & (~1023)) + 1024);
+    irq_vector_copy = (unsigned int *)(((unsigned int)buffer & (~1023)) + 1024);
+
+    VTOR_INIT  = *(unsigned int **)0xe000ed08;
 
     // FIXME copy vector from current source location
+    for (int j = 0; j < (16 + 138); j++) {
+      irq_vector_copy[j] = VTOR_INIT[j];
+    }
+
     // FIXME update VTOR
     // FIXME register additional handler
     // FIXME enable IRQ
   }
 
-  mp_int_t result = (mp_int_t)irq_vector_copy;
+  mp_int_t result = (mp_int_t)VTOR_INIT;
   return mp_obj_new_int(result);
 }
 
