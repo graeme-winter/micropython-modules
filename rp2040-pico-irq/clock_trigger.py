@@ -1,11 +1,16 @@
 from machine import mem32, Pin
+import time
 
-# FIXME import irq module and init here
+import irq
+
+irq.init()
 
 p20 = Pin(20, Pin.OUT)
 
 def toggle(pin):
     p20.toggle()
+
+toggle()
 
 p19 = Pin(19, Pin.IN)
 
@@ -16,8 +21,10 @@ GPIO21_CTRL = IO_BANK_BASE | 0xac
 mem32[GPIO21_CTRL] = 8 # GPCLK0
 mem32[CLK_BASE] = 1 << 11
 
-mem32[CLK_BASE | 4] = 12500000 << 8
+mem32[CLK_BASE | 4] = 125000 << 8
 
 p19.irq(toggle, Pin.IRQ_RISING | Pin.IRQ_FALLING, hard=True)
 
-# FIXME irq deinit here after some time
+time.sleep(60)
+
+irq.deinit()
