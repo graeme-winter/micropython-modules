@@ -1,5 +1,5 @@
-#include "py/dynruntime.h"
 #include <math.h>
+#include "py/dynruntime.h"
 
 // global variables - strictly some of these are not needed
 
@@ -58,17 +58,12 @@ int signal_filter_row(uint16_t *io_row) {
     if (row > knl2) {
       for (uint32_t i = 0; i < knl2; i++) {
         uint32_t off = i * width;
-        mp_fun_table.memmove_((void *)&im[off], (const void *)&im[off + width],
-                              width * sizeof(uint32_t));
-        mp_fun_table.memmove_((void *)&m_sat[off],
-                              (const void *)&m_sat[off + width],
-                              width * sizeof(uint32_t));
-        mp_fun_table.memmove_((void *)&i_sat[off],
-                              (const void *)&i_sat[off + width],
-                              width * sizeof(uint32_t));
-        mp_fun_table.memmove_((void *)&i2_sat[off],
-                              (const void *)&i2_sat[off + width],
-                              width * sizeof(uint32_t));
+        for (uint32_t j = 0; j < width; j++) {
+          im[off + j] = im[off + j + width];
+          m_sat[off + j] = m_sat[off + j + width];
+          i_sat[off + j] = i_sat[off + j + width];
+          i2_sat[off + j] = i2_sat[off + j + width];
+        }
       }
     }
 
@@ -135,10 +130,10 @@ int signal_filter_row(uint16_t *io_row) {
     if (p > 0 && m_sum >= 2) {
       float bg_lhs = (float)m_sum * i2_sum - (float)i_sum * i_sum -
                      (float)i_sum * (m_sum - 1);
-      float bg_rhs = i_sum * sigma_b * (float)sqrtf((float)2 * (m_sum - 1));
+      float bg_rhs = i_sum * sigma_b * (float) sqrtf((float)2 * (m_sum - 1));
       uint16_t background = bg_lhs > bg_rhs;
-      float fg_lhs = (float)m_sum * p - (float)i_sum;
-      float fg_rhs = sigma_s * (float)sqrtf((float)i_sum * m_sum);
+      float fg_lhs = (float) m_sum * p - (float)i_sum;
+      float fg_rhs = sigma_s * (float) sqrtf((float)i_sum * m_sum);
       uint16_t foreground = fg_lhs > fg_rhs;
       signal = background && foreground;
     }
