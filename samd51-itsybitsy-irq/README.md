@@ -1,0 +1,3 @@
+# Drive-by IRQ Modification
+
+Make copy of interrupt vector, modify VTOR to point at this _while the system is running_. Modify this via µPython which feels like something of a bold choice...
