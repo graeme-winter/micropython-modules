@@ -21,8 +21,8 @@ STATIC mp_obj_t spot_finder_deinit(void) {
 STATIC mp_obj_t spot_finder_row(mp_obj_t row_obj) {
   mp_buffer_info_t bufinfo;
   mp_get_buffer_raise(row_obj, &bufinfo, MP_BUFFER_RW);
-  signal_filter_row((uint16_t *) bufinfo.buf);
-  return mp_obj_new_int(0);
+  mp_int_t nsignal = signal_filter_row((uint16_t *) bufinfo.buf);
+  return mp_obj_new_int(nsignal);
 }
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(spot_finder_init_obj, spot_finder_init);

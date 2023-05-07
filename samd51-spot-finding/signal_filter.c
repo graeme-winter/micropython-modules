@@ -51,6 +51,8 @@ int signal_filter_row(uint16_t *io_row) {
   float sigma_b = 6.0f, sigma_s = 3.0f;
   uint32_t knl2 = 2 * knl + 1;
 
+  int nsignal = 0;
+
   if (row < height) {
     // move rows up if we are past the start-up region
     if (row > knl2) {
@@ -136,6 +138,7 @@ int signal_filter_row(uint16_t *io_row) {
       signal = background && foreground;
     }
     io_row[j] = signal;
+    nsignal += signal;
   }
 
   row++;
@@ -143,5 +146,5 @@ int signal_filter_row(uint16_t *io_row) {
   if (row == height + knl)
     row = 0;
 
-  return 0;
+  return nsignal;
 }
