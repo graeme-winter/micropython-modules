@@ -128,10 +128,10 @@ int signal_filter_row(uint16_t *io_row) {
     if (p > 0 && m_sum >= 2) {
       float bg_lhs = (float)m_sum * i2_sum - (float)i_sum * i_sum -
                      (float)i_sum * (m_sum - 1);
-      float bg_rhs = i_sum * sigma_b * sqrt((float)2 * (m_sum - 1));
+      float bg_rhs = i_sum * sigma_b * sqrtf((float)2 * (m_sum - 1));
       uint16_t background = bg_lhs > bg_rhs;
-      float fg_lhs = (float)m_sum * p - (float)i_sum;
-      float fg_rhs = sigma_s * sqrt((float)i_sum * m_sum);
+      float fg_lhs = (float) m_sum * p - (float)i_sum;
+      float fg_rhs = sigma_s * sqrtf((float)i_sum * m_sum);
       uint16_t foreground = fg_lhs > fg_rhs;
       signal = background && foreground;
     }
