@@ -27,22 +27,26 @@ def main():
     os.mount(sd, "/sd")
 
     # file is 18 * 512 * 1028 * 2 bytes
-    with open("/sd/frame_00000.raw", "rb") as fin:
 
-        buffer = bytearray(1028 * 2)
+    buffer = bytearray(1028 * 2)
 
-        t0 = time.time()
-        signal = 0
-        for i in range(18):
-            for j in range(512 + 3):
-                fin.readinto(buffer, 1028 * 2)
-                signal += spot_filter.row(buffer)
+    for j in range(10):
+        filename = f"/sd/frame_{j:05d}.raw"
+        with open(filename, "rb") as fin:
+            t0 = time.time()
+            signal = 0
+            for i in range(18):
+                for j in range(512):
+                    fin.readinto(buffer, 1028 * 2)
+                    signal += spot_filter.row(buffer)
+                # last 3 rows
+                for j in range(3):
+                    signal += spot_filter.row(buffer)
                 led.toggle()
-            print(i, signal)
 
-        t1 = time.time()
+            t1 = time.time()
 
-        print(f"Found {signal} signal pixels in {t1 - t0:.2f}s")
+            print(f"{filename} => {signal} signal pixels in {t1 - t0:d}s")
 
     os.umount("/sd")
 
