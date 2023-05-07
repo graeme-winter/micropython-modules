@@ -77,7 +77,7 @@ else ifeq ($(ARCH),armv7emsp)
 
 # thumb
 CROSS = arm-none-eabi-
-CFLAGS += -mthumb -mcpu=cortex-m4
+CFLAGS += -mthumb -mcpu=cortex-m4 -Ofast
 CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 MICROPY_FLOAT_IMPL ?= float
 AFLAGS = -mthumb -mcpu=cortex-m4
