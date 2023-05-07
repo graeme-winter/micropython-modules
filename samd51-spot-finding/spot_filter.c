@@ -1,5 +1,5 @@
-#include <stdint.h>
 #include "py/dynruntime.h"
+#include <stdint.h>
 
 int signal_filter_init(uint32_t height, uint32_t width, uint32_t knl);
 int signal_filter_row(uint16_t *row);
@@ -9,7 +9,7 @@ STATIC mp_obj_t spot_finder_init(mp_obj_t ny_obj, mp_obj_t nx_obj) {
   mp_int_t ny = mp_obj_get_int(ny_obj);
   mp_int_t nx = mp_obj_get_int(nx_obj);
   uint32_t knl = 3;
-  signal_filter_init((uint32_t) ny, (uint32_t) nx, knl);
+  signal_filter_init((uint32_t)ny, (uint32_t)nx, knl);
   return mp_obj_new_int(0);
 }
 
@@ -21,7 +21,7 @@ STATIC mp_obj_t spot_finder_deinit(void) {
 STATIC mp_obj_t spot_finder_row(mp_obj_t row_obj) {
   mp_buffer_info_t bufinfo;
   mp_get_buffer_raise(row_obj, &bufinfo, MP_BUFFER_RW);
-  mp_int_t nsignal = signal_filter_row((uint16_t *) bufinfo.buf);
+  mp_int_t nsignal = signal_filter_row((uint16_t *)bufinfo.buf);
   return mp_obj_new_int(nsignal);
 }
 
