@@ -4,7 +4,7 @@ import numpy
 import serial
 import bitshuffle
 
-dev = "/dev/tty.usbmodem14232202"
+dev = "/dev/tty.usbmodem14232302"
 
 uart = serial.Serial(dev, baudrate=115200 * 8)
 

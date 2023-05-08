@@ -8,7 +8,9 @@ def main():
 
     spot_filter.init(512, 1028)
 
-    uart = UART(1, 115200 * 8, rx=Pin("D1"), tx=Pin("D0"))
+    uart = UART(1, 115200 * 8, rx=Pin("D1"), tx=Pin("D0"), timeout=1000)
+
+    time.sleep(5)
 
     led = Pin("D13", Pin.OUT)
 
@@ -21,7 +23,7 @@ def main():
         signal = 0
         for i in range(18):
             for j in range(512):
-                uart.readinto(buffer, 1028 * 2)
+                uart.readinto(buffer)
                 signal += spot_filter.row(buffer)
                 if j >= 3:
                     uart.write(buffer)
@@ -34,6 +36,7 @@ def main():
         t1 = time.ticks_ms()
 
         print(f"Frame {frame} => {signal} signal pixels in {0.001*(t1 - t0):.2f}s")
+        frame += 1
 
     spot_filter.deinit()
 
