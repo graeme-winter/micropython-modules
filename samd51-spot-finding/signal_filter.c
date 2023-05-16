@@ -1,5 +1,24 @@
+#include <stdint.h>
 #include <math.h>
 #include "py/dynruntime.h"
+
+/* Spot structure:
+ *
+ * sum of intensity of pixels, intensity * x offset, * y offset, .. etc.
+ * bounding box, then pointer to parent spot if this gets merged with
+ * another blob (whereapon n will be reset to 0) - n is the number of
+ * pixels contributing to the spot.
+ *
+ * Sized to be 6 words / 24 bytes per spot.
+ */
+
+typedef struct spot {
+  uint32_t i_sum;
+  uint32_t ix_sum;
+  uint32_t iy_sum;
+  uint16_t x0, x1, y0, y1;
+  uint16_t parent, n;
+} spot;
 
 // global variables - strictly some of these are not needed
 
@@ -7,6 +26,11 @@ uint32_t *im = NULL;
 uint32_t *m_sat = NULL;
 uint32_t *i_sat = NULL;
 uint32_t *i2_sat = NULL;
+
+#define MAX_SPOTS 1024
+
+spot * spots = NULL;
+uint32_t nspots = 0;
 
 uint32_t height = 0;
 uint32_t width = 0;
@@ -29,6 +53,10 @@ int signal_filter_init(uint32_t _height, uint32_t _width, uint32_t _knl) {
   i_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn);
   i2_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn);
 
+  // allocate room for 1024 spots
+  spots = (spot *)m_malloc(sizeof(spot) * MAX_SPOTS);
+  nspots = 0;
+
   return 0;
 }
 
@@ -41,8 +69,9 @@ int signal_filter_deinit(void) {
   m_free(m_sat);
   m_free(i_sat);
   m_free(i2_sat);
+  m_free(spots)
 
-  im = m_sat = i_sat = i2_sat = NULL;
+  im = m_sat = i_sat = i2_sat = spots = NULL;
 
   return 0;
 }
