@@ -76,6 +76,12 @@ int signal_filter_deinit(void) {
   return 0;
 }
 
+uint32_t signal_filter_reset(void) {
+  uint32_t result = nspots;
+  nspots = 0;
+  return result;
+}
+
 int signal_filter_row(uint16_t *io_row) {
   float sigma_b = 6.0f, sigma_s = 3.0f;
   uint32_t knl2 = 2 * knl + 1;
