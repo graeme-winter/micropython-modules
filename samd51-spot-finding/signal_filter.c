@@ -1,6 +1,6 @@
-#include <stdint.h>
-#include <math.h>
 #include "py/dynruntime.h"
+#include <math.h>
+#include <stdint.h>
 
 /* Spot structure:
  *
@@ -20,7 +20,7 @@ typedef struct spot {
   uint16_t parent, n;
 } spot;
 
-// global variables - strictly some of these are not needed
+// global variables
 
 uint32_t *im = NULL;
 uint32_t *m_sat = NULL;
@@ -29,7 +29,7 @@ uint32_t *i2_sat = NULL;
 
 #define MAX_SPOTS 1024
 
-spot * spots = NULL;
+spot *spots = NULL;
 uint32_t nspots = 0;
 
 uint32_t height = 0;
@@ -69,15 +69,16 @@ int signal_filter_deinit(void) {
   m_free(m_sat);
   m_free(i_sat);
   m_free(i2_sat);
-  m_free(spots)
+  m_free(spots);
 
-  im = m_sat = i_sat = i2_sat = spots = NULL;
+  im = m_sat = i_sat = i2_sat = NULL;
+  spots = (spot *)NULL;
 
   return 0;
 }
 
 uint32_t signal_filter_reset(void) {
-  uint32_t result = nspots;
+  uint32_t result = nspots - 1;
   nspots = 0;
   return result;
 }
@@ -87,6 +88,22 @@ int signal_filter_row(uint16_t *io_row) {
   uint32_t knl2 = 2 * knl + 1;
 
   int nsignal = 0;
+
+  // spot[0] won't be useful later on since setting the index to this
+  // will be the same as a non-signal pixel
+
+  spot no_spot;
+  no_spot.i_sum = 0;
+  no_spot.ix_sum = 0;
+  no_spot.iy_sum = 0;
+  no_spot.n = 0;
+  no_spot.parent = 0;
+  no_spot.x0 = 0;
+  no_spot.x1 = 0;
+  no_spot.y0 = 0;
+  no_spot.y1 = 0;
+
+  spots[0] = no_spot;
 
   if (row < height) {
     // move rows up if we are past the start-up region
@@ -165,15 +182,87 @@ int signal_filter_row(uint16_t *io_row) {
     if (p > 0 && m_sum >= 2) {
       float bg_lhs = (float)m_sum * i2_sum - (float)i_sum * i_sum -
                      (float)i_sum * (m_sum - 1);
-      float bg_rhs = i_sum * sigma_b * (float) sqrtf((float)2 * (m_sum - 1));
+      float bg_rhs = i_sum * sigma_b * (float)sqrtf((float)2 * (m_sum - 1));
       uint16_t background = bg_lhs > bg_rhs;
-      float fg_lhs = (float) m_sum * p - (float)i_sum;
-      float fg_rhs = sigma_s * (float) sqrtf((float)i_sum * m_sum);
+      float fg_lhs = (float)m_sum * p - (float)i_sum;
+      float fg_rhs = sigma_s * (float)sqrtf((float)i_sum * m_sum);
       uint16_t foreground = fg_lhs > fg_rhs;
       signal = background && foreground;
     }
     io_row[j] = signal;
     nsignal += signal;
+
+    // perform connected component analysis - replaces im[i*width + j]
+    // pixel value with spot id or 0
+    if (signal) {
+      uint16_t above = i > 0 ? im[i * width + j - width] : 0;
+      uint16_t left = j > 0 ? im[i * width + j - 1] : 0;
+
+      while (spots[above].parent > 0) {
+        above = spots[above].parent;
+      }
+      while (spots[left].parent > 0) {
+        left = spots[left].parent;
+      }
+      if (above == 0 && left == 0) {
+        // create a new spot record
+        nspots++;
+        spots[nspots].i_sum = p;
+        spots[nspots].ix_sum = p * j;
+        spots[nspots].iy_sum = p * i;
+        spots[nspots].n = 1;
+        spots[nspots].x0 = j;
+        spots[nspots].x1 = j;
+        spots[nspots].y0 = i;
+        spots[nspots].y1 = i;
+        spots[nspots].parent = 0;
+        im[i * width + j] = nspots;
+      } else if ((above == left) || (above == 0 && left > 0) ||
+                 (above > 0 && left == 0)) {
+        // merge with correct one
+        uint16_t keep = MAX(above, left);
+        spots[keep].i_sum += p;
+        spots[keep].ix_sum += p * j;
+        spots[keep].iy_sum += p * i;
+        spots[keep].n++;
+        // given this is 4-connected should never reassign x0, y0?
+        spots[keep].x0 = MIN(j, spots[keep].x0);
+        spots[keep].x1 = MAX(j, spots[keep].x1);
+        spots[keep].y0 = MIN(i, spots[keep].y0);
+        spots[keep].y1 = MAX(i, spots[keep].y1);
+        im[i * width + j] = keep;
+      } else if (above != left) {
+        // deal with the collision and add this spot while we are here
+        uint16_t keep = MIN(above, left);
+        uint16_t reject = MAX(above, left);
+        spot r = spots[reject];
+
+        spots[keep].i_sum += r.i_sum;
+        spots[keep].ix_sum += r.ix_sum;
+        spots[keep].iy_sum += r.iy_sum;
+        spots[keep].n += r.n;
+        spots[keep].x0 = MIN(r.x0, spots[keep].x0);
+        spots[keep].x1 = MAX(r.x1, spots[keep].x1);
+        spots[keep].y0 = MIN(r.y0, spots[keep].y0);
+        spots[keep].y1 = MAX(r.y1, spots[keep].y1);
+
+        spots[reject] = no_spot;
+        spots[reject].parent = keep;
+
+        spots[keep].i_sum += p;
+        spots[keep].ix_sum += p * j;
+        spots[keep].iy_sum += p * i;
+        spots[keep].n++;
+        spots[keep].x0 = MIN(j, spots[keep].x0);
+        spots[keep].x1 = MAX(j, spots[keep].x1);
+        spots[keep].y0 = MIN(i, spots[keep].y0);
+        spots[keep].y1 = MAX(i, spots[keep].y1);
+        im[i * width + j] = keep;
+      }
+
+    } else {
+      im[i * width + j] = 0;
+    }
   }
 
   row++;
