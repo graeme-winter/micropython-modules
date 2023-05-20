@@ -78,7 +78,10 @@ int signal_filter_deinit(void) {
 }
 
 uint32_t signal_filter_reset(void) {
-  uint32_t result = nspots - 1;
+  uint32_t result = 0;
+  for (int j = 1; j <= nspots; j++) {
+    if (spots[j].n > 2) result ++;
+  }
   nspots = 0;
   return result;
 }
