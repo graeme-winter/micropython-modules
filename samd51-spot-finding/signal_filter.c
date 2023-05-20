@@ -195,11 +195,15 @@ int signal_filter_row(uint16_t *io_row) {
     io_row[j] = signal;
     nsignal += signal;
 
-    // perform connected component analysis - replaces im[i*width + j]
+    // perform connected component analysis - replaces im[i * width + j]
     // pixel value with spot id or 0
     if (signal) {
-      uint16_t above = i > 0 ? im[i * width + j - width] : 0;
-      uint16_t left = j > 0 ? im[i * width + j - 1] : 0;
+      uint16_t above = i > 0 ? im[(i - 1) * width + j] : 0;
+      uint16_t left = j > 0 ? im[i * width + (j - 1)] : 0;
+
+      // FIXME everything to do with x0, y0 etc. will be
+      // wrong as this is a rolling window - need to keep
+      // track of a true i here
 
       while (spots[above].parent > 0) {
         above = spots[above].parent;
@@ -228,7 +232,6 @@ int signal_filter_row(uint16_t *io_row) {
         spots[keep].ix_sum += p * j;
         spots[keep].iy_sum += p * i;
         spots[keep].n++;
-        // given this is 4-connected should never reassign x0, y0?
         spots[keep].x0 = MIN(j, spots[keep].x0);
         spots[keep].x1 = MAX(j, spots[keep].x1);
         spots[keep].y0 = MIN(i, spots[keep].y0);
@@ -262,7 +265,6 @@ int signal_filter_row(uint16_t *io_row) {
         spots[keep].y1 = MAX(i, spots[keep].y1);
         im[i * width + j] = keep;
       }
-
     } else {
       im[i * width + j] = 0;
     }
