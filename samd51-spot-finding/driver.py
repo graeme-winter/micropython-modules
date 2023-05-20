@@ -30,11 +30,12 @@ def main():
 
     buffer = bytearray(1028 * 2)
 
-    for j in range(10):
+    for j in range(20):
         filename = f"/sd/frame_{j:05d}.raw"
         with open(filename, "rb") as fin:
-            t0 = time.time()
+            t0 = time.ticks_ms()
             signal = 0
+            spots = 0
             for i in range(18):
                 for j in range(512):
                     fin.readinto(buffer, 1028 * 2)
@@ -43,10 +44,12 @@ def main():
                 for j in range(3):
                     signal += spot_filter.row(buffer)
                 led.toggle()
+                spots += spot_filter.reset()
+            t1 = time.ticks_ms()
 
-            t1 = time.time()
-
-            print(f"{filename} => {signal} signal pixels in {t1 - t0:d}s")
+            print(
+                f"{filename} => {signal} pixels / {spots} spots in {0.001*(t1 - t0):.2f}s"
+            )
 
     os.umount("/sd")
 
