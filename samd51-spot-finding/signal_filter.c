@@ -48,13 +48,13 @@ int signal_filter_init(uint32_t _height, uint32_t _width, uint32_t _knl) {
   // buffer size is 2 * KNL + 1 rows, + 1 more row for the pre-subtraction row
   uint32_t nn = (2 * _knl + 2) * _width;
 
-  im = (uint32_t *)m_malloc(sizeof(uint32_t) * nn);
-  m_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn);
-  i_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn);
-  i2_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn);
+  im = (uint32_t *)m_malloc(sizeof(uint32_t) * nn, false);
+  m_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn, false);
+  i_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn, false);
+  i2_sat = (uint32_t *)m_malloc(sizeof(uint32_t) * nn, false);
 
   // allocate room for 1024 spots
-  spots = (spot *)m_malloc(sizeof(spot) * MAX_SPOTS);
+  spots = (spot *)m_malloc(sizeof(spot) * MAX_SPOTS, false);
   nspots = 0;
 
   return 0;
