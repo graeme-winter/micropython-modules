@@ -2,21 +2,24 @@
 
 unsigned int original_handler;
 unsigned int original_handler_set;
+unsigned int systick;
 
 #define VTOR_ADDR 0xe000ed08
+#define SYST_CVR 0xe000e018
 
 void irq(void) {
-  // toggle GPIO 20
-  *(unsigned int *)0xd000001c = 0x1 << 20;
-  // clear IRQ @ 19 in GPIO registers - §2.19.6.1
-  *(unsigned int *)0x400140f8 = 0xf << 12;
+  // grab the time delta
+  systick = *(unsigned int *)SYST_CVR;
+
+  // toggle GPIO 25 as a sign of life
+  *(unsigned int *)0xd000001c = 0x1 << 25;
 }
 
 STATIC mp_obj_t irq_init(void) {
   if (original_handler_set == 0) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
-    original_handler = VTOR[16 + 13];
-    VTOR[16 + 13] = (unsigned int)&irq;
+    original_handler = VTOR[0xf];
+    VTOR[0xf] = (unsigned int)&irq;
     original_handler_set = 1;
   }
   return mp_obj_new_int(0);
@@ -25,10 +28,10 @@ STATIC mp_obj_t irq_init(void) {
 STATIC mp_obj_t irq_deinit(void) {
   if (original_handler_set == 1) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
-    VTOR[16 + 13] = original_handler;
+    VTOR[0xf] = original_handler;
     original_handler_set = 0;
   }
-  return mp_obj_new_int(0);
+  return mp_obj_new_int(systick);
 }
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(irq_init_obj, irq_init);
