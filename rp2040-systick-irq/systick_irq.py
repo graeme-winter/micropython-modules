@@ -13,10 +13,11 @@ SYST_CSR = PPB_BASE | 0xE010
 SYST_RVR = PPB_BASE | 0xE014
 SYST_CVR = PPB_BASE | 0xE018
 
-mem32[SYST_CSR] = 12_500_000
+mem32[SYST_RVR] = 12_500_000
 
 mem32[SYST_CSR] = 0x7
 time.sleep(10)
 mem32[SYST_CSR] = 0x0
 
-systick.deinit()
+# print number of cycles needed on last delay
+print(12_500_000 - systick.deinit())
