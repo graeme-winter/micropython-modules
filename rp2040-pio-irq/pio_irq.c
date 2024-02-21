@@ -7,8 +7,8 @@ unsigned int original_handler_set;
 #define PIO_IRQ_OFFSET 7
 
 void pio_irq(void) {
-  // toggle GPIO 20
-  *(unsigned int *)0xd000001c = 0x1 << 20;
+  // toggle GPIO 0
+  *(unsigned int *)0xd000001c = 0x1;
   // clear pio_irq0 in PIO0 register §3.7
   *(unsigned int *)0x50200030 = 0x1;
 }
