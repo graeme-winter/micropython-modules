@@ -1,5 +1,5 @@
-MOD = irq
-SRC = irq.c
+MOD = pio_irq
+SRC = pio_irq.c
 
 # ideally this should come from invocation?
 ARCH = armv6m
