@@ -4,35 +4,36 @@ unsigned int original_handler;
 unsigned int original_handler_set;
 
 #define VTOR_ADDR 0xe000ed08
+#define PIO_IRQ_OFFSET 7
 
-void irq(void) {
+void pio_irq(void) {
   // toggle GPIO 20
   *(unsigned int *)0xd000001c = 0x1 << 20;
-  // clear IRQ @ 19 in GPIO registers - §2.19.6.1
-  *(unsigned int *)0x400140f8 = 0xf << 12;
+  // clear pio_irq0 in PIO0 register §3.7
+  *(unsigned int *)0x50200030 = 0x1;
 }
 
-STATIC mp_obj_t irq_init(void) {
+STATIC mp_obj_t pio_irq_init(void) {
   if (original_handler_set == 0) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
-    original_handler = VTOR[16 + 13];
-    VTOR[16 + 13] = (unsigned int)&irq;
+    original_handler = VTOR[16 + PIO_IRQ_OFFSET];
+    VTOR[16 + 13] = (unsigned int)&pio_irq;
     original_handler_set = 1;
   }
   return mp_obj_new_int(0);
 }
 
-STATIC mp_obj_t irq_deinit(void) {
+STATIC mp_obj_t pio_irq_deinit(void) {
   if (original_handler_set == 1) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
-    VTOR[16 + 13] = original_handler;
+    VTOR[16 + PIO_IRQ_OFFSET] = original_handler;
     original_handler_set = 0;
   }
   return mp_obj_new_int(0);
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(irq_init_obj, irq_init);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(irq_deinit_obj, irq_deinit);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(pio_irq_init_obj, pio_irq_init);
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(pio_irq_deinit_obj, pio_irq_deinit);
 
 mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw,
                   mp_obj_t *args) {
@@ -40,8 +41,8 @@ mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw,
 
   original_handler_set = 0;
 
-  mp_store_global(MP_QSTR_init, MP_OBJ_FROM_PTR(&irq_init_obj));
-  mp_store_global(MP_QSTR_deinit, MP_OBJ_FROM_PTR(&irq_deinit_obj));
+  mp_store_global(MP_QSTR_init, MP_OBJ_FROM_PTR(&pio_irq_init_obj));
+  mp_store_global(MP_QSTR_deinit, MP_OBJ_FROM_PTR(&pio_irq_deinit_obj));
 
   MP_DYNRUNTIME_INIT_EXIT
 }
