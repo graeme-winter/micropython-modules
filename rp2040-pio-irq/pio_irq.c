@@ -3,17 +3,22 @@
 unsigned int original_handler;
 unsigned int original_handler_set;
 
+unsigned int irq_count;
+
 #define VTOR_ADDR 0xe000ed08
 #define PIO_IRQ_OFFSET 7
 
 void pio_irq(void) {
   // toggle GPIO 0
-  *(unsigned int *)0xd000001c = 0x1;
+  // *(unsigned int *)0xd000001c = 0x1;
   // clear pio_irq0 in PIO0 register §3.7
   *(unsigned int *)0x50200030 = 0x1;
+
+  irq_count++;
 }
 
 STATIC mp_obj_t pio_irq_init(void) {
+  irq_count = 0;
   if (original_handler_set == 0) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
     original_handler = VTOR[16 + PIO_IRQ_OFFSET];
@@ -29,7 +34,7 @@ STATIC mp_obj_t pio_irq_deinit(void) {
     VTOR[16 + PIO_IRQ_OFFSET] = original_handler;
     original_handler_set = 0;
   }
-  return mp_obj_new_int(0);
+  return mp_obj_new_int(irq_count);
 }
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(pio_irq_init_obj, pio_irq_init);
