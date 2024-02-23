@@ -3,18 +3,20 @@
 unsigned int original_handler;
 unsigned int original_handler_set;
 
-unsigned int irq_count;
+volatile unsigned int irq_count;
 
 #define VTOR_ADDR 0xe000ed08
 #define VTOR_IRQ_OFFSET 16
 #define PIO_IRQ_OFFSET 7
 
 void pio_irq(void) {
-  // toggle GPIO 0
-  // *(unsigned int *)0xd000001c = 0x1;
+  // toggle GPIO 1
+  *(unsigned int *)0xd000001c = 0x2;
+
   // clear pio_irq0 in PIO0 register §3.7
   *(unsigned int *)0x50200030 = 0x1;
 
+  // increment count
   irq_count++;
 }
 
