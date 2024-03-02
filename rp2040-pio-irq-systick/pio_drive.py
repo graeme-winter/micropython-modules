@@ -6,7 +6,7 @@ import time
 import pio_irq_syst
 
 # configure the scratch buffer
-scratch = array("I", [0])
+scratch = array("I", [0 for j in range(100)])
 address = addressof(scratch)
 
 # pins
@@ -20,6 +20,11 @@ PIO0_FLEVEL = 0x50200000 | 0xC
 PIO0_RXF0 = 0x50200000 | 0x20
 PIO0_INTE = 0x50200000 | 0x12C
 
+# systick registers
+PPB_BASE = 0xE0000000
+SYST_CSR = PPB_BASE | 0xE010
+SYST_CVR = PPB_BASE | 0xE018
+
 # DMA registers
 CH0_READ_ADDR = 0x50000000 | 0x0
 CH0_WRITE_ADDR = 0x50000000 | 0x4
@@ -30,7 +35,7 @@ QUIET = 0x1 << 21
 DATA_SIZE = 0x2 << 2
 ENABLE = 0x1
 
-NN = 1_000_000_000
+NN = 1_000_000
 
 BUSY = 0x1 << 24
 
@@ -53,13 +58,16 @@ def tick():
 while mem32[PIO0_FLEVEL] & 0xF0:
     scr = mem32[PIO0_RXF0]
 
-t0 = time.ticks_us()
-
 # set up DMA
 mem32[CH0_READ_ADDR] = PIO0_RXF0
 mem32[CH0_WRITE_ADDR] = address
 mem32[CH0_TRANS_COUNT] = NN
 mem32[CH0_CTRL_TRIG] = QUIET + DREQ_PIO0_RX0 + DATA_SIZE + ENABLE
+
+# set up systick - reset the counter and set the systick to
+# emabled | clock driven (125 MHz)
+mem32[SYST_CVR] = 0
+mem32[SYST_CSR] = 5
 
 
 # useless handler - is never called
@@ -78,7 +86,7 @@ sm.exec("mov(y, invert(osr))")
 # enable interrupt (un)mask
 mem32[PIO0_INTE] = 0x1 << 8
 
-pio_irq_syst.init()
+pio_irq_syst.init(address, 100)
 sm.active(1)
 
 while mem32[CH0_CTRL_TRIG] & BUSY:
@@ -87,6 +95,8 @@ while mem32[CH0_CTRL_TRIG] & BUSY:
 sm.active(0)
 pio_irq_syst.deinit()
 
-t1 = time.ticks_us()
+# disable systick
+mem32[SYST_CSR] = 0
 
-print((t1 - t0) / NN, pio_irq_syst.get())
+for j in range(100):
+    print(pio_irq_syst.get(j))

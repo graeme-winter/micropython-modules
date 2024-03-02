@@ -3,6 +3,8 @@
 unsigned int original_handler;
 unsigned int original_handler_set;
 
+unsigned int *systick_readings;
+volatile unsigned int systick_max;
 volatile unsigned int irq_count;
 
 #define VTOR_ADDR 0xe000ed08
@@ -20,7 +22,9 @@ void pio_irq(void) {
   irq_count++;
 }
 
-STATIC mp_obj_t pio_irq_init(void) {
+STATIC mp_obj_t pio_irq_init(mp_obj_t addr_obj, mp_obj_t count_obj) {
+  systick_readings = (unsigned int *)mp_obj_get_int(addr_obj);
+  systick_max = (unsigned int)mp_obj_get_int(count_obj);
   irq_count = 0;
   if (original_handler_set == 0) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
@@ -40,11 +44,13 @@ STATIC mp_obj_t pio_irq_deinit(void) {
   return mp_obj_new_int(irq_count);
 }
 
-STATIC mp_obj_t pio_irq_get(void) { return mp_obj_new_int(irq_count); }
+STATIC mp_obj_t pio_irq_get(mp_obj_t count_obj) {
+  return mp_obj_new_int(irq_count);
+}
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(pio_irq_init_obj, pio_irq_init);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(pio_irq_init_obj, pio_irq_init);
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(pio_irq_deinit_obj, pio_irq_deinit);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(pio_irq_get_obj, pio_irq_get);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(pio_irq_get_obj, pio_irq_get);
 
 mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw,
                   mp_obj_t *args) {
