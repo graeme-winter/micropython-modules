@@ -12,14 +12,16 @@ volatile unsigned int irq_count;
 #define PIO_IRQ_OFFSET 7
 
 void pio_irq(void) {
-  // toggle GPIO 1
-  *(unsigned int *)0xd000001c = 0x2;
+  // record current systick value
+  systick_readings[irq_count] = *(unsigned int *)0xe000e018;
 
   // clear pio_irq0 in PIO0 register §3.7
   *(unsigned int *)0x50200030 = 0x1;
 
-  // increment count
+  // increment count - rolling if we go over
   irq_count++;
+  if (irq_count == systick_max)
+    irq_count = 0;
 }
 
 STATIC mp_obj_t pio_irq_init(mp_obj_t addr_obj, mp_obj_t count_obj) {
@@ -45,7 +47,8 @@ STATIC mp_obj_t pio_irq_deinit(void) {
 }
 
 STATIC mp_obj_t pio_irq_get(mp_obj_t count_obj) {
-  return mp_obj_new_int(irq_count);
+  mp_int_t index = (unsigned int)mp_obj_get_int(count_obj);
+  return mp_obj_new_int(systick_readings[index]);
 }
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(pio_irq_init_obj, pio_irq_init);

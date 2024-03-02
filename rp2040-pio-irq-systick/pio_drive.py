@@ -35,7 +35,7 @@ QUIET = 0x1 << 21
 DATA_SIZE = 0x2 << 2
 ENABLE = 0x1
 
-NN = 1_000_000
+NN = 800_000
 
 BUSY = 0x1 << 24
 
@@ -99,4 +99,4 @@ pio_irq_syst.deinit()
 mem32[SYST_CSR] = 0
 
 for j in range(100):
-    print(pio_irq_syst.get(j))
+    print(j, pio_irq_syst.get(j))
