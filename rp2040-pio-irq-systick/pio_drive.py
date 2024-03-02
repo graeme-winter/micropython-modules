@@ -6,8 +6,11 @@ import time
 import pio_irq_syst
 
 # configure the scratch buffer
-scratch = array("I", [0 for j in range(100)])
+scratch = array("I", [0])
 address = addressof(scratch)
+
+# configure the count buffer
+count = array("I", [0 for j in range(100)])
 
 # pins
 pins = [Pin(j, Pin.OUT) for j in (0, 1)]
@@ -35,7 +38,7 @@ QUIET = 0x1 << 21
 DATA_SIZE = 0x2 << 2
 ENABLE = 0x1
 
-NN = 800_000
+NN = 1_000_000
 
 BUSY = 0x1 << 24
 
@@ -86,7 +89,7 @@ sm.exec("mov(y, invert(osr))")
 # enable interrupt (un)mask
 mem32[PIO0_INTE] = 0x1 << 8
 
-pio_irq_syst.init(address, 100)
+pio_irq_syst.init(addressof(count), 100)
 sm.active(1)
 
 while mem32[CH0_CTRL_TRIG] & BUSY:
@@ -98,5 +101,5 @@ pio_irq_syst.deinit()
 # disable systick
 mem32[SYST_CSR] = 0
 
-for j in range(100):
-    print(j, pio_irq_syst.get(j))
+for j in range(1, 100):
+    print(j, count[j - 1] - count[j])
