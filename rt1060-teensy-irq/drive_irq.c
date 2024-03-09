@@ -1,24 +1,23 @@
 #include "py/dynruntime.h"
 
 // defines
-#define EIC_BASE 0x40002800
+#define GPIO1_BASE 0x401b8000
 #define VTOR_ADDR 0xe000ed08
-#define PORT_BASE 0x41008000
 
-// memory structure - interrupt vector is length > 128 words -> 256 word alignment
-// needed so just allocate 2 kB of memory, seek to point where this is aligned
-// correctly
+// memory structure - interrupt vector is length > 128 words -> 256 word
+// alignment needed so just allocate 2 kB of memory, seek to point where this is
+// aligned correctly
 
 unsigned int *buffer = NULL;
 unsigned int *irq_vector_copy = NULL;
 unsigned int *VTOR_INIT = 0;
 
 void irq_action(void) {
-  // clear PA22
-  *((unsigned int *) (PORT_BASE | 0x14)) = 0x1 << 22;
+  // toggle D12 / B0_01
+  *((unsigned int *)(GPIO1_BASE | 0x8c)) = 0x1 << 1;
 
-  // clear IRQ
-  *(unsigned int *) (EIC_BASE | 0x14) = 0x1 << 7;
+  // clear IRQ on D10 / B0_00
+  *(unsigned int *)(GPIO1_BASE | 0x18) = 0x1 << 0;
 }
 
 STATIC mp_obj_t drive_irq_init(void) {
@@ -27,19 +26,18 @@ STATIC mp_obj_t drive_irq_init(void) {
     buffer = m_malloc(2 * 1024);
     irq_vector_copy = (unsigned int *)(((unsigned int)buffer & (~1023)) + 1024);
 
-    VTOR_INIT  = *(unsigned int **)VTOR_ADDR;
+    VTOR_INIT = *(unsigned int **)VTOR_ADDR;
 
     // Copy vector from current source location
-    for (int j = 0; j < (16 + 138); j++) {
+    for (int j = 0; j < (16 + 160); j++) {
       irq_vector_copy[j] = VTOR_INIT[j];
     }
 
-    // Register additional handler - for PA22 is on EIC7
-    irq_vector_copy[12 + 16 + 7] = (unsigned int) &irq_action;
+    // Register additional handler - for GPIO1 / 0 has unshared IRQ
+    irq_vector_copy[16 + 72] = (unsigned int)&irq_action;
 
     // Update VTOR
     *(unsigned int **)VTOR_ADDR = irq_vector_copy;
-
   }
 
   mp_int_t result = (mp_int_t)VTOR_INIT;
