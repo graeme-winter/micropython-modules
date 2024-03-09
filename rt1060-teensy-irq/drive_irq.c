@@ -1,7 +1,7 @@
 #include "py/dynruntime.h"
 
 // defines
-#define GPIO1_BASE 0x401b8000
+#define GPIO2_BASE 0x401bc000
 #define VTOR_ADDR 0xe000ed08
 
 // memory structure - interrupt vector is length > 128 words -> 256 word
@@ -14,10 +14,10 @@ unsigned int *VTOR_INIT = 0;
 
 void irq_action(void) {
   // toggle D12 / B0_01
-  *((unsigned int *)(GPIO1_BASE | 0x8c)) = 0x1 << 1;
+  *((unsigned int *)(GPIO2_BASE | 0x8c)) = 0x1 << 1;
 
   // clear IRQ on D10 / B0_00
-  *(unsigned int *)(GPIO1_BASE | 0x18) = 0x1 << 0;
+  *(unsigned int *)(GPIO2_BASE | 0x18) = 0x1 << 0;
 }
 
 STATIC mp_obj_t drive_irq_init(void) {
@@ -34,7 +34,7 @@ STATIC mp_obj_t drive_irq_init(void) {
     }
 
     // Register additional handler - for GPIO1 / 0 has unshared IRQ
-    irq_vector_copy[16 + 72] = (unsigned int)&irq_action;
+    irq_vector_copy[16 + 82] = (unsigned int)&irq_action;
 
     // Update VTOR
     *(unsigned int **)VTOR_ADDR = irq_vector_copy;
