@@ -13,7 +13,7 @@ STATIC mp_obj_t bslz4_row(mp_obj_t row_obj) {
   mp_buffer_info_t bufinfo;
   mp_get_buffer_raise(row_obj, &bufinfo, MP_BUFFER_RW);
   // mp_int_t nsignal = signal_filter_row((uint16_t *)bufinfo.buf);
-  return mp_obj_new_int(nsignal);
+  return mp_obj_new_int(0);
 }
 
 STATIC mp_obj_t bslz4_reset(void) {

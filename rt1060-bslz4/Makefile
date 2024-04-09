@@ -1,5 +1,5 @@
-MOD = drive_irq
-SRC = drive_irq.c
+MOD = bslz4
+SRC = bslz4.c bitshuffle.c bitshuffle_core.c iochain.c lz4.c
 
 # ideally this should come from invocation?
 ARCH = armv7emsp
