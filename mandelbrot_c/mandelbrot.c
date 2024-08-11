@@ -2,10 +2,6 @@
 
 #define mul(a, b) (int32_t)((((int64_t)a) * ((int64_t)b)) >> 24)
 
-#define XSTR(x) STR(x)
-#define STR(x) #x
-#pragma message "MPY_FEATURE_ENCODE_ARCH(MPY_FEATURE_ARCH) = " XSTR(MPY_FEATURE_ARCH)
-
 int mandelrow_impl(int addr, int ci) {
   int32_t offset = 0;
   int *iter = (int *) addr;
