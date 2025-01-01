@@ -12,7 +12,7 @@ def toggle(pin):
     p20.toggle()
 
 
-toggle()
+toggle(p20)
 
 p19 = Pin(19, Pin.IN)
 
