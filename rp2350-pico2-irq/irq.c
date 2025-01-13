@@ -4,9 +4,14 @@ volatile unsigned int original_handler;
 
 #define VTOR_ADDR 0xe000ed08
 
+__inline__ static void toggle(uint pin) {
+  __asm("mcr p0, #5, %0, c0, c0" : : "r" (pin));
+}
+
 void irq(void) {
   // toggle GPIO 2
-  *(unsigned int *)0xd0000028 = 0x4;
+  // *(unsigned int *)0xd0000028 = 0x4;
+  toggle(2);
   // clear IRQ in GPIO registers
   *(unsigned int *)0x40028230 = 0xc0;
 }
