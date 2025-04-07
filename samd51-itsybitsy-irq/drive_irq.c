@@ -21,7 +21,7 @@ void irq_action(void) {
   *(unsigned int *) (EIC_BASE | 0x14) = 0x1 << 7;
 }
 
-STATIC mp_obj_t drive_irq_init(void) {
+static mp_obj_t drive_irq_init(void) {
   // allocate buffer of 2 x size to give space to align with 1024 kB boundary
   if (buffer == NULL) {
     buffer = m_malloc(2 * 1024);
@@ -46,7 +46,7 @@ STATIC mp_obj_t drive_irq_init(void) {
   return mp_obj_new_int(result);
 }
 
-STATIC mp_obj_t drive_irq_deinit(void) {
+static mp_obj_t drive_irq_deinit(void) {
   if (buffer) {
     // Revert VTOR
     *(unsigned int **)VTOR_ADDR = VTOR_INIT;
@@ -60,8 +60,8 @@ STATIC mp_obj_t drive_irq_deinit(void) {
   return mp_obj_new_int(result);
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(drive_irq_init_obj, drive_irq_init);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(drive_irq_deinit_obj, drive_irq_deinit);
+static MP_DEFINE_CONST_FUN_OBJ_0(drive_irq_init_obj, drive_irq_init);
+static MP_DEFINE_CONST_FUN_OBJ_0(drive_irq_deinit_obj, drive_irq_deinit);
 
 mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw,
                   mp_obj_t *args) {
