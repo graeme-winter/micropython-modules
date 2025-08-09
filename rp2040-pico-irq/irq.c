@@ -12,7 +12,7 @@ void irq(void) {
   *(unsigned int *)0x400140f8 = 0xf << 12;
 }
 
-STATIC mp_obj_t irq_init(void) {
+static mp_obj_t irq_init(void) {
   if (original_handler_set == 0) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
     original_handler = VTOR[16 + 13];
@@ -22,7 +22,7 @@ STATIC mp_obj_t irq_init(void) {
   return mp_obj_new_int(0);
 }
 
-STATIC mp_obj_t irq_deinit(void) {
+static mp_obj_t irq_deinit(void) {
   if (original_handler_set == 1) {
     unsigned int *VTOR = *(unsigned int **)VTOR_ADDR;
     VTOR[16 + 13] = original_handler;
@@ -31,8 +31,8 @@ STATIC mp_obj_t irq_deinit(void) {
   return mp_obj_new_int(0);
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(irq_init_obj, irq_init);
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(irq_deinit_obj, irq_deinit);
+static MP_DEFINE_CONST_FUN_OBJ_0(irq_init_obj, irq_init);
+static MP_DEFINE_CONST_FUN_OBJ_0(irq_deinit_obj, irq_deinit);
 
 mp_obj_t mpy_init(mp_obj_fun_bc_t *self, size_t n_args, size_t n_kw,
                   mp_obj_t *args) {
